@@ -24,7 +24,13 @@ public class driver {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                HelpDialog dialog = new HelpDialog(frame);
+                Object[][] data = { 
+                                    {"asd","zxc","qwert"},
+                                    {"tybt","qcqeas","plmfk"},
+                                    {10,"ascce","6yhnv"},
+                                    {"czxcasd","zxadwxac","qwert10"}};
+                Object[] heading = {"first","second","third"};
+                HelpDialog dialog = new HelpDialog(frame,data,heading);
                 dialog.setVisible(true);
             }
         });
