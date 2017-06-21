@@ -25,11 +25,11 @@ public class driver {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 Object[][] data = { 
-                                    {"asd","zxc","qwert"},
-                                    {"tybt","qcqeas","plmfk"},
-                                    {10,"ascce","6yhnv"},
-                                    {"czxcasd","zxadwxac","qwert10"}};
-                Object[] heading = {"first","second","third"};
+                                    {"asd","zxc","qwert",2},
+                                    {"tybt","qcqeas","plmfk",7},
+                                    {10,"ascce","6yhnv",11},
+                                    {"czxcasd","zxadwxac","qwert10",10}};
+                Object[] heading = {"first","second","third","fourth"};
                 HelpDialog dialog = new HelpDialog(frame,data,heading);
                 dialog.setVisible(true);
             }
