@@ -12,6 +12,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -19,6 +27,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -29,31 +38,163 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 /**
- *
+ * 
  * @author Dhaval
  */
 public class HelpDialog extends JDialog {
     
     private JTextField searchBar;
+    private JRadioButton filterRadioButton;
+    private JRadioButton findRadioButton;
     private JComboBox<String> searchColumnComboBox;
     private HelpTable table;
     private int searchColumn = 0;
-    private int filterType = 0;
+    private String[][] returnData;
+    private String[] returnDataHeadings;
     
-    private static final int FILTER = 0;
-    private static final int FIND = 1;
+    private HashMap<String, String> map = null;
     
+    /**
+     * Generates Help Dialog
+     * @param frame pass the instance of frame
+     * @param data data of the table
+     * @param headings headings of the table
+     */
     public HelpDialog(JFrame frame, Object[][] data, Object[] headings) {
-        super(frame, "Help", true);
-        setSize(500, 500);
-        
+        super(frame, "Help", true);  
+        returnDataHeadings = new String[headings.length];
+        for(int i = 0; i < headings.length; i++) {
+            returnDataHeadings[i] = headings[i].toString();
+        }
+        returnData = new String[data.length][headings.length];
+        for(int i = 0; i < data.length; i++) {
+            for(int j = 0; j < headings.length; j++) {
+                returnData[i][j] = data[i][j].toString();
+            }
+        }
         setTableData(data, headings);
-        searchBar = new JTextField();        
         createGUI();
+    }
+    
+    /**
+     * Generates Help Dialog
+     * @param frame pass the instance of frame
+     * @param columns pass the columns to display in the HelpDialog. 
+     *                This should be same as what you will write in Query between SELECT and FROM. 
+     *                The return result will be same as columns
+     * <br>i.e. SELECT visibleColumn FROM table<br>
+     * @param appendQuery pass the query starting from FROM. i.e. If query is SELECT * FROM table WHERE condition, pass "FROM table WHERE condition"<br><br>
+     * @param columnNo default column selected for searching. Starting index is 0<br><br>
+     */
+    public HelpDialog(JFrame frame, String columns, String appendQuery, int columnNo) {
+        super(frame, "Help", true);
+        DataDbHelper db = DataDbHelper.getInstance();
+        String query = generateQuery(columns, appendQuery);
+        ResultSet result = db.executeQuery(query);
+        searchColumn = columnNo;
+        if(result == null) {
+            JOptionPane.showMessageDialog(null, "No Data Extracted");
+        }
+        else {
+            try {
+                ResultSetMetaData metaData = result.getMetaData();
+                
+                String headings[] = new String[metaData.getColumnCount()];
+                for(int i = 1; i <= headings.length; i++) {
+                    headings[i-1] = metaData.getColumnLabel(i);
+                }
+                result.last();
+                int rows = result.getRow();
+                result.beforeFirst();
+                String data[][] = new String[rows][headings.length];
+                for(int i = 0; result.next(); i++) {
+                    for(int j = 0; j < headings.length; j++) {
+                        data[i][j] = result.getString(j+1);
+                    }
+                }
+                returnData = data;
+                returnDataHeadings = headings;
+                setTableData(data, headings);
+                createGUI();
+            } catch (SQLException ex) {
+                Logger.getLogger(HelpDialog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    /**
+     * Generates Help Dialog
+     * @param frame pass the instance of frame
+     * @param visibleColumn pass the columns to display in the HelpDialog. This should be same as what you will write in Query between SELECT and FROM.
+     * <br>i.e. SELECT visibleColumn FROM table<br>
+     * @param returnColumn pass the columns to return in the HelpDialog. This should be same as what you will write in Query between SELECT and FROM.
+     * <br>i.e. SELECT visibleColumn FROM table<br>
+     * @param appendQuery pass the query starting from FROM. i.e. If query is SELECT * FROM table WHERE condition, pass "FROM table WHERE condition"<br><br>
+     * @param columnNo default column selected for searching. Starting index is 0<br><br>
+     */
+    public HelpDialog(JFrame frame, String visibleColumn, String returnColumn, String appendQuery, int columnNo) {
+        
+        //Clean this code
+        super(frame, "Help", true);
+        DataDbHelper db = DataDbHelper.getInstance();
+        String visibleQuery = generateQuery(visibleColumn, appendQuery);
+        String returnQuery = generateQuery(returnColumn, appendQuery);
+        ResultSet result = db.executeQuery(visibleQuery);
+        searchColumn = columnNo;
+        if(result == null) {
+            JOptionPane.showMessageDialog(null, "No Data Extracted");
+        }
+        else {
+            try {
+                ResultSetMetaData metaData = result.getMetaData();
+                
+                String headings[] = new String[metaData.getColumnCount()];
+                for(int i = 1; i <= headings.length; i++) {
+                    headings[i-1] = metaData.getColumnLabel(i);
+                }
+                result.last();
+                int rows = result.getRow();
+                result.beforeFirst();
+                String data[][] = new String[rows][headings.length];
+                for(int i = 0; result.next(); i++) {
+                    for(int j = 0; j < headings.length; j++) {
+                        data[i][j] = result.getString(j+1);
+                    }
+                }
+                ResultSet reresult = db.executeQuery(returnQuery);
+                ResultSetMetaData ewmetaData = reresult.getMetaData();
+                
+                returnDataHeadings = new String[ewmetaData.getColumnCount()];
+                for(int i = 1; i <= returnDataHeadings.length; i++) {
+                    returnDataHeadings[i-1] = ewmetaData.getColumnLabel(i);
+                }
+                reresult.last();
+                int ewrows = reresult.getRow();
+                reresult.beforeFirst();
+                returnData = new String[ewrows][returnDataHeadings.length];
+                for(int i = 0; reresult.next(); i++) {
+                    for(int j = 0; j < returnDataHeadings.length; j++) {
+                        returnData[i][j] = reresult.getString(j+1);
+                    }
+                }
+                setTableData(data, headings);
+                createGUI();
+            } catch (SQLException ex) {
+                Logger.getLogger(HelpDialog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
     }
     
     private void createGUI() {
         
+        setSize(800, 600);
+        searchBar = new JTextField();  
+        filterRadioButton = new JRadioButton("Filter");
+        findRadioButton = new JRadioButton("Find");
+        ButtonGroup group = new ButtonGroup();
+        group.add(findRadioButton);
+        group.add(filterRadioButton);
         searchBar.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent de) {
@@ -75,17 +216,38 @@ public class HelpDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 searchColumn = searchColumnComboBox.getSelectedIndex();
+                table.filter(searchColumn);
             }
         });
+        
+        ActionListener radioListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                table.filter(searchColumn);
+            }
+        };
+        filterRadioButton.addActionListener(radioListener);
+        findRadioButton.addActionListener(radioListener);
+        
+        searchColumnComboBox.setSelectedIndex(searchColumn);
+        filterRadioButton.setSelected(true);
         
         add(new JScrollPane(table), BorderLayout.CENTER);
         
         JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        panel.setLayout(new BorderLayout(5, 5));
         panel.add(searchColumnComboBox, BorderLayout.WEST);
         panel.add(searchBar, BorderLayout.CENTER);
-        
+        JPanel searchOptionPanel = new JPanel();
+        searchOptionPanel.setLayout(new FlowLayout());
+        searchOptionPanel.add(filterRadioButton);
+        searchOptionPanel.add(findRadioButton);
+        panel.add(searchOptionPanel,BorderLayout.EAST);
         add(panel, BorderLayout.NORTH);
+        
+        searchBar.requestFocus();
+        setVisible(true);
     }
     
     private void setTableData(Object[][] data, Object[] headings) {
@@ -94,7 +256,35 @@ public class HelpDialog extends JDialog {
             head[i] = (String) headings[i];
         }
         searchColumnComboBox = new JComboBox<>(head);
-        table = new HelpTable(data, headings);
+        table = new HelpTable(this, data, headings);
+    }
+    
+    private String generateQuery(String columns, String appendQuery) {
+        String query = "";
+        query = "SELECT "+columns+" "+appendQuery;
+        return query;
+    }
+    
+    /**
+     * Get the result of the selected column
+     * @return returns a HashMap with keys as name of the return columns. 
+     * <br>If the user has closed HelpDialog. i.e. User have not selected any option, this will return null
+     * <b> Example :</b>
+     * <pre>
+     * {@code 
+     *      HashMap<String, String> result = dialog.getResult();
+     *      if(result == null) {
+     *          // User has cancelled HelpDialog
+     *      }
+     *      else {
+     *          // User has successfully completed operation.
+     *          // Do your operation here
+     *      }
+     * }
+     * </pre>
+     */
+    public HashMap<String, String> getResult() {
+        return map;
     }
     
     class HelpTable extends JTable {
@@ -104,7 +294,7 @@ public class HelpDialog extends JDialog {
         private int popUpClick = 0;
         private Object[][] data;
         
-        HelpTable(Object[][] data, Object[] headings) {
+        HelpTable(HelpDialog dialog, Object[][] data, Object[] headings) {
             DefaultTableModel model = new DefaultTableModel(data, headings) {
                 @Override
                 public boolean isCellEditable(int i, int i1) {
@@ -125,6 +315,19 @@ public class HelpDialog extends JDialog {
             addMouseListener(new MouseListener() {
                 @Override
                 public void mouseClicked(MouseEvent me) {
+                    if(me.getClickCount() == 2) {
+                        map = new HashMap<>();
+                        JTable table = (JTable) me.getSource();
+                        //int row = table.rowAtPoint(me.getPoint());
+                        int row=table.getSelectedRow();
+                        if (table.getRowSorter()!=null) {
+                            row = table.getRowSorter().convertRowIndexToModel(row);
+                        }
+                        for(int i = 0; i < returnDataHeadings.length; i++) {
+                            map.put(returnDataHeadings[i], returnData[row][i]);
+                        }
+                        dialog.setVisible(false);
+                    }
                 }
 
                 @Override
@@ -192,7 +395,7 @@ public class HelpDialog extends JDialog {
         public void filter(int column) {
             RowFilter<DefaultTableModel, Object> rf = null;
             try {
-                if(filterType == FILTER) {
+                if(filterRadioButton.isSelected()) {
                     rf = RowFilter.regexFilter(searchBar.getText(), column);
                 }
                 else {
