@@ -30,8 +30,10 @@ public class driver {
                                     {10,"ascce","6yhnv",11},
                                     {"czxcasd","zxadwxac","qwert10",10}};
                 Object[] heading = {"first","second","third","fourth"};
-                HelpDialog dialog = new HelpDialog(frame,data,heading);
-                dialog.setVisible(true);
+                //HelpDialog dialog = new HelpDialog(frame,data,heading);
+                HelpDialog dialog = new HelpDialog(frame,"*","FROM trainingdata",1);
+                System.out.println(dialog.getResult().toString());
+                int i = 0;
             }
         });
         
