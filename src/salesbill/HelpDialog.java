@@ -38,7 +38,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 /**
- * 
+ * Generates Help Dialog
  * @author Dhaval
  */
 public class HelpDialog extends JDialog {
@@ -55,7 +55,7 @@ public class HelpDialog extends JDialog {
     private HashMap<String, String> map = null;
     
     /**
-     * Generates Help Dialog
+     * Generates Help Dialog. Use this if you have raw Data
      * @param frame pass the instance of frame
      * @param data data of the table
      * @param headings headings of the table
@@ -77,14 +77,16 @@ public class HelpDialog extends JDialog {
     }
     
     /**
-     * Generates Help Dialog
+     * Generates Help Dialog. Use this if the columns you want to display are same as columns you want to return in result
      * @param frame pass the instance of frame
      * @param columns pass the columns to display in the HelpDialog. 
      *                This should be same as what you will write in Query between SELECT and FROM. 
      *                The return result will be same as columns
-     * <br>i.e. SELECT visibleColumn FROM table<br>
-     * @param appendQuery pass the query starting from FROM. i.e. If query is SELECT * FROM table WHERE condition, pass "FROM table WHERE condition"<br><br>
-     * @param columnNo default column selected for searching. Starting index is 0<br><br>
+     * <br>i.e. SELECT visibleColumn FROM table
+     * @param appendQuery pass the query starting from FROM. i.e. If query is SELECT * FROM table WHERE condition, pass "FROM table WHERE condition"
+     * @param columnNo default column selected for searching. Starting index is 0<br>
+     * <b> Example : </b><br>
+     * {@code HelpDialog dialog = new HelpDialog(frame,"*","FROM table",1);}
      */
     public HelpDialog(JFrame frame, String columns, String appendQuery, int columnNo) {
         super(frame, "Help", true);
@@ -123,14 +125,17 @@ public class HelpDialog extends JDialog {
     }
     
     /**
-     * Generates Help Dialog
+     * Generates Help Dialog. Use this if there are some hidden columns or you have different requirements to 
+     * show visible columns and values of columns to return
      * @param frame pass the instance of frame
      * @param visibleColumn pass the columns to display in the HelpDialog. This should be same as what you will write in Query between SELECT and FROM.
-     * <br>i.e. SELECT visibleColumn FROM table<br>
+     * <br>i.e. SELECT visibleColumn FROM table
      * @param returnColumn pass the columns to return in the HelpDialog. This should be same as what you will write in Query between SELECT and FROM.
-     * <br>i.e. SELECT visibleColumn FROM table<br>
-     * @param appendQuery pass the query starting from FROM. i.e. If query is SELECT * FROM table WHERE condition, pass "FROM table WHERE condition"<br><br>
-     * @param columnNo default column selected for searching. Starting index is 0<br><br>
+     * <br>i.e. SELECT visibleColumn FROM table
+     * @param appendQuery pass the query starting from FROM. i.e. If query is SELECT * FROM table WHERE condition, pass "FROM table WHERE condition"
+     * @param columnNo default column selected for searching. Starting index is 0<br>
+     * <b> Example : </b><br>
+     * {@code HelpDialog dialog = new HelpDialog(frame,"*","FROM table",1);}
      */
     public HelpDialog(JFrame frame, String visibleColumn, String returnColumn, String appendQuery, int columnNo) {
         
